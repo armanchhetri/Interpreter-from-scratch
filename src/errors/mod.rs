@@ -26,7 +26,7 @@ impl ErrorHandler {
     pub fn display_errors(&self, source_code: &str) {
         // let source_lines: Vec<&str> = source_code.lines().collect();
         for err in &self.errors {
-            println!(
+            eprintln!(
                 "[line {}] Error: {}",
                 err.line_num,
                 err.error_msg // source_lines[err.line_num as usize - 1]
