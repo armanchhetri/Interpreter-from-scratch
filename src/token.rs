@@ -14,7 +14,7 @@ pub enum TokenType {
     None,
     EOF,
     String(String),
-    Number(Number),
+    Number(Number, String), // String holds the literal with which the number was built
     Identifier(String),
     Semicolon,
     LeftParen,
@@ -134,7 +134,7 @@ impl TokenType {
     pub fn to_str(&self) -> String {
         match self {
             TokenType::String(value) => value.clone(),
-            TokenType::Number(num) => num.to_string(),
+            TokenType::Number(num, _) => num.to_string(),
             TokenType::Identifier(ident) => ident.clone(),
             other_token => {
                 let mut ret_lexeme = String::new();
@@ -164,7 +164,7 @@ impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenType::String(value) => write!(f, "STRING \"{}\" {}", value, value),
-            TokenType::Number(num) => write!(f, "NUMBER {} {}", num.value(), num),
+            TokenType::Number(num, num_literal) => write!(f, "NUMBER {} {}", num_literal, num),
             TokenType::Identifier(ident) => write!(f, "IDENTIFIER {} null", ident),
             other_token => {
                 if let Some(token_string) = TOKENTYPE_TO_STRING.get(other_token) {
@@ -202,16 +202,25 @@ mod test {
     #[test]
     fn test_display() {
         assert_eq!(
-            String::from("NUMBER 90.33 90.33"),
-            format!("{}", TokenType::Number(Number::from_str("90.33").unwrap()))
+            String::from("NUMBER 90.0000 90.0"),
+            format!(
+                "{}",
+                TokenType::Number(Number::from_str("90.0000").unwrap(), "90.0000".to_string())
+            )
         );
         assert_eq!(
             String::from("NUMBER 90 90.0"),
-            format!("{}", TokenType::Number(Number::from_str("90").unwrap()))
+            format!(
+                "{}",
+                TokenType::Number(Number::from_str("90").unwrap(), "90".to_string())
+            )
         );
         assert_eq!(
             String::from("NUMBER 90.1 90.1"),
-            format!("{}", TokenType::Number(Number::from_str("90.1").unwrap()))
+            format!(
+                "{}",
+                TokenType::Number(Number::from_str("90.1").unwrap(), "90.1".to_string())
+            )
         );
         println!("{}", Number::from_str("90.1").unwrap());
         assert_eq!(String::from("EOF  null"), format!("{}", TokenType::EOF));

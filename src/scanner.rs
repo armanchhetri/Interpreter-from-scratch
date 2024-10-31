@@ -143,7 +143,7 @@ impl<'a> Scanner<'a> {
 
     fn get_number(&mut self) -> Option<TokenType> {
         let mut number_str = String::new();
-        self.prev(); // go back one step
+        self.prev();
         while let Some(c) = self.peek() {
             if c.is_numeric() || c == '.' {
                 number_str.push(c);
@@ -153,7 +153,7 @@ impl<'a> Scanner<'a> {
             }
         }
         match number_str.parse::<Number>() {
-            Ok(n) => Some(TokenType::Number(n)),
+            Ok(n) => Some(TokenType::Number(n, number_str)),
             Err(_) => {
                 self.error_handler
                     .report(String::from("impossible to parse a number"), self.curr_line);
