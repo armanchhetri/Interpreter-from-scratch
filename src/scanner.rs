@@ -63,13 +63,19 @@ impl<'a> Scanner<'a> {
                 '/' => {
                     if self.is_next('/') {
                         self.read_until('\n');
-                        self.curr_line += 1;
+                        // self.curr_line += 1;
                         continue;
                     } else {
                         TokenType::Slash
                     }
                 }
-                '"' => self.get_string_token(),
+                '"' => {
+                    if let Some(t) = self.get_string_token() {
+                        t
+                    } else {
+                        continue;
+                    }
+                }
 
                 other_char => {
                     if other_char.is_whitespace() {
@@ -103,18 +109,18 @@ impl<'a> Scanner<'a> {
         tokens
     }
 
-    fn get_string_token(&mut self) -> TokenType {
+    fn get_string_token(&mut self) -> Option<TokenType> {
         let mut string_str = String::new();
         for c in &mut *self {
             // while let Some(c) = self.next() {
             if c == '"' {
-                return TokenType::String(string_str);
+                return Some(TokenType::String(string_str));
             }
             string_str.push(c);
         }
         self.error_handler
-            .report(String::from("Non-terminated string value"), self.curr_line);
-        TokenType::None
+            .report(String::from("Unterminated string"), self.curr_line);
+        None
     }
 
     fn get_keyword_or_identifier(&mut self) -> TokenType {
@@ -156,11 +162,16 @@ impl<'a> Scanner<'a> {
         }
     }
     fn read_until(&mut self, end: char) {
-        for c in self {
+        let mut line_count = self.curr_line;
+        for c in &mut *self {
+            if c == '\n' {
+                line_count += 1;
+            }
             if c == end {
                 break;
             }
         }
+        self.curr_line = line_count;
     }
 
     fn is_next(&self, c: char) -> bool {
@@ -222,6 +233,19 @@ impl<'a> SuperIterator for Scanner<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_strings() {
+        let mut error_handler = ErrorHandler::new();
+        let source_code = "\"foo bar\"";
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
+        let expected = vec![
+            Token::new(TokenType::String(String::from("foo bar")), 1),
+            Token::new(TokenType::EOF, 1),
+        ];
+        let got = scanner.scan_source();
+        assert_eq!(expected, got);
+    }
 
     #[test]
     fn test_whitespaces() {
