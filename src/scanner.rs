@@ -89,7 +89,7 @@ impl<'a> Scanner<'a> {
                         // handle other cases
                         if other_char.is_numeric() {
                             token = self.get_number().unwrap_or(TokenType::None);
-                        } else if other_char.is_alphanumeric() {
+                        } else if other_char.is_alphanumeric() || other_char == '_' {
                             // its either a keyword or an identifier
                             token = self.get_keyword_or_identifier();
                         }
@@ -127,7 +127,7 @@ impl<'a> Scanner<'a> {
         self.prev();
         let mut keyword_str = String::new();
         while let Some(k) = self.peek() {
-            if k.is_alphanumeric() {
+            if k.is_alphanumeric() || k == '_' {
                 keyword_str.push(k);
                 self.next();
             } else {
