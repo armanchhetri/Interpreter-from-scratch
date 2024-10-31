@@ -12,7 +12,7 @@ use scanner::Scanner;
 pub fn tokenize(source_code: &str) {
     let mut error_handler = ErrorHandler::new();
     let mut scanner = Scanner::new(source_code, &mut error_handler);
-    let tokens = scanner.scan();
+    let tokens = scanner.scan_source();
 
     error_handler.display_errors(source_code);
     for token in tokens {

@@ -20,7 +20,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    pub fn scan(&mut self) -> Vec<Token> {
+    pub fn scan_source(&mut self) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
         while let Some(c) = self.next() {
             if c == '\n' {
@@ -61,7 +61,16 @@ impl<'a> Scanner<'a> {
                         TokenType::Greater
                     }
                 }
+                '/' => {
+                    if self.is_next('/') {
+                        self.read_until('\n');
+                        continue;
+                    } else {
+                        TokenType::Slash
+                    }
+                }
                 '"' => self.get_string_token(),
+
                 other_char => {
                     let mut token = TokenType::None;
                     // check if single character is part of language
@@ -93,7 +102,8 @@ impl<'a> Scanner<'a> {
 
     fn get_string_token(&mut self) -> TokenType {
         let mut string_str = String::new();
-        while let Some(c) = self.next() {
+        for c in &mut *self {
+            // while let Some(c) = self.next() {
             if c == '"' {
                 return TokenType::String(string_str);
             }
@@ -142,6 +152,13 @@ impl<'a> Scanner<'a> {
             }
         }
     }
+    fn read_until(&mut self, end: char) {
+        for c in self {
+            if c == end {
+                break;
+            }
+        }
+    }
 
     fn is_next(&self, c: char) -> bool {
         if let Some(next) = self.peek() {
@@ -155,7 +172,7 @@ impl<'a> Scanner<'a> {
     }
 }
 
-impl<'a> SuperIterator for Scanner<'a> {
+impl<'a> Iterator for Scanner<'a> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -167,6 +184,9 @@ impl<'a> SuperIterator for Scanner<'a> {
             None
         }
     }
+}
+
+impl<'a> SuperIterator for Scanner<'a> {
     fn prev(&mut self) -> Option<Self::Item> {
         if self.curr_idx > 0 {
             let expected_idx = self.curr_idx - 1;
@@ -199,23 +219,35 @@ impl<'a> SuperIterator for Scanner<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+    #[test]
+    fn test_slash() {
+        let mut error_handler = ErrorHandler::new();
+        let source_code = "()// Comment";
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
+        let expected = vec![
+            Token::new(TokenType::LeftParen, 1),
+            Token::new(TokenType::RightParen, 1),
+            Token::new(TokenType::EOF, 1),
+        ];
+        let got = scanner.scan_source();
+        assert_eq!(expected, got);
+    }
 
     #[test]
     fn test_equal_equal() {
         let mut error_handler = ErrorHandler::new();
         let source_code = "={===}";
         let mut scanner = Scanner::new(source_code, &mut error_handler);
-        assert_eq!(
-            vec![
-                Token::new(TokenType::Equal, 1),
-                Token::new(TokenType::LeftBrace, 1),
-                Token::new(TokenType::EqualEqual, 1),
-                Token::new(TokenType::Equal, 1),
-                Token::new(TokenType::RightBrace, 1),
-                Token::new(TokenType::EOF, 1)
-            ],
-            scanner.scan()
-        );
+        let expected = vec![
+            Token::new(TokenType::Equal, 1),
+            Token::new(TokenType::LeftBrace, 1),
+            Token::new(TokenType::EqualEqual, 1),
+            Token::new(TokenType::Equal, 1),
+            Token::new(TokenType::RightBrace, 1),
+            Token::new(TokenType::EOF, 1),
+        ];
+        let got = scanner.scan_source();
+        assert_eq!(expected, got);
     }
 
     #[test]
@@ -247,7 +279,7 @@ mod test {
                 Token::new(TokenType::RightParen, 1),
                 Token::new(TokenType::EOF, 1)
             ],
-            scanner.scan()
+            scanner.scan_source()
         );
     }
 
@@ -259,7 +291,7 @@ var x = 9;
 var y = x + 8.8;
 ";
         let mut scanner = Scanner::new(source_code, &mut error_handler);
-        let tokens = scanner.scan();
+        let tokens = scanner.scan_source();
         assert_eq!(tokens.len(), 13);
     }
 }
