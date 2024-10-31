@@ -12,6 +12,9 @@ impl ErrorHandler {
     pub fn new() -> Self {
         ErrorHandler { errors: Vec::new() }
     }
+    pub fn has_error(&self) -> bool {
+        !self.errors.is_empty()
+    }
     pub fn report(&mut self, error_msg: String, line_num: usize) {
         let lox_error = LoxError {
             error_msg,
@@ -21,13 +24,12 @@ impl ErrorHandler {
     }
 
     pub fn display_errors(&self, source_code: &str) {
-        let source_lines: Vec<&str> = source_code.lines().collect();
+        // let source_lines: Vec<&str> = source_code.lines().collect();
         for err in &self.errors {
             println!(
-                "Error: {} \nAt\n{}:{}",
-                err.error_msg,
+                "[line {}] Error: {}",
                 err.line_num,
-                source_lines[err.line_num as usize - 1]
+                err.error_msg // source_lines[err.line_num as usize - 1]
             );
         }
     }

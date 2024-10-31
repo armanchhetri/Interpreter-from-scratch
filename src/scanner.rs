@@ -3,15 +3,15 @@ use crate::superiterator::SuperIterator;
 use crate::token::number::Number;
 use crate::token::{Token, TokenType};
 
-pub struct Scanner {
+pub struct Scanner<'a> {
     pub source_code: Vec<char>,
     curr_idx: usize,
     curr_line: usize,
-    error_handler: ErrorHandler,
+    error_handler: &'a mut ErrorHandler,
 }
 
-impl Scanner {
-    pub fn new(source_code: &str, error_handler: ErrorHandler) -> Self {
+impl<'a> Scanner<'a> {
+    pub fn new(source_code: &str, error_handler: &'a mut ErrorHandler) -> Self {
         Scanner {
             source_code: source_code.chars().collect(),
             curr_idx: 0,
@@ -78,7 +78,9 @@ impl Scanner {
             if token_type != TokenType::None {
                 tokens.push(Token::new(token_type, self.curr_line));
             } else {
-                println!("Got none token type");
+                self.error_handler
+                    .report(format!("Unexpected character: {}", c), self.curr_line);
+                // println!("Got none token type");
             }
         }
         tokens.push(Token::new(TokenType::EOF, self.curr_line));
@@ -149,7 +151,7 @@ impl Scanner {
     }
 }
 
-impl SuperIterator for Scanner {
+impl<'a> SuperIterator for Scanner<'a> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -196,9 +198,9 @@ mod test {
 
     #[test]
     fn test_scanner_as_iterator() {
-        let error_handler = ErrorHandler::new();
+        let mut error_handler = ErrorHandler::new();
         let source_code = "code";
-        let mut scanner = Scanner::new(source_code, error_handler);
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
         assert_eq!(scanner.prev(), None);
         assert_eq!(scanner.next(), Some('c'));
         assert_eq!(scanner.peek(), Some('o'));
@@ -213,9 +215,9 @@ mod test {
 
     #[test]
     fn test_paren() {
-        let error_handler = ErrorHandler::new();
+        let mut error_handler = ErrorHandler::new();
         let source_code = "(()";
-        let mut scanner = Scanner::new(source_code, error_handler);
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
         assert_eq!(
             vec![
                 Token::new(TokenType::LeftParen, 1),
@@ -229,12 +231,12 @@ mod test {
 
     #[test]
     fn test_language_scan() {
-        let error_handler = ErrorHandler::new();
+        let mut error_handler = ErrorHandler::new();
         let source_code = "\
 var x = 9;
 var y = x + 8.8;
 ";
-        let mut scanner = Scanner::new(source_code, error_handler);
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
         let tokens = scanner.scan();
         assert_eq!(tokens.len(), 13);
         // for token in tokens {
