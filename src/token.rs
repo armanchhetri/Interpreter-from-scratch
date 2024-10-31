@@ -52,6 +52,9 @@ pub enum TokenType {
     For,
     Fun,
     Nil,
+    Print,
+    Return,
+    This,
 }
 static LEXEME_TO_TOKENTYPE: Lazy<HashMap<&'static str, TokenType>> = Lazy::new(|| {
     hashmap! {
@@ -74,8 +77,8 @@ static LEXEME_TO_TOKENTYPE: Lazy<HashMap<&'static str, TokenType>> = Lazy::new(|
         "<=" => TokenType::LessEqual,
         ">" => TokenType::Greater,
         ">=" => TokenType::GreaterEqual,
-        "&" => TokenType::And,
-        "|" => TokenType::Or,
+        "and" => TokenType::And,
+        "or" => TokenType::Or,
         "true" => TokenType::True,
         "false" => TokenType::False,
         "if" => TokenType::If,
@@ -85,8 +88,11 @@ static LEXEME_TO_TOKENTYPE: Lazy<HashMap<&'static str, TokenType>> = Lazy::new(|
         "super" => TokenType::Super,
         "for" => TokenType::For,
         "fun" => TokenType::Fun,
-        "Nil" => TokenType::Nil,
+        "nil" => TokenType::Nil,
         "var" => TokenType::Var,
+        "print" => TokenType::Print,
+        "return" => TokenType::Return,
+        "this" => TokenType::This,
         "" => TokenType::EOF,
     }
 });
@@ -126,6 +132,9 @@ static TOKENTYPE_TO_STRING: Lazy<HashMap<TokenType, &'static str>> = Lazy::new(|
         TokenType::Fun => "FUN",
         TokenType::Nil => "NIL",
         TokenType::Var=> "VAR",
+        TokenType::Print => "PRINT",
+        TokenType::Return => "RETURN",
+        TokenType::This => "THIS",
 
     }
 });
