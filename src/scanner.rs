@@ -119,7 +119,7 @@ impl<'a> Scanner<'a> {
             string_str.push(c);
         }
         self.error_handler
-            .report(String::from("Unterminated string"), self.curr_line);
+            .report(String::from("Unterminated string."), self.curr_line);
         None
     }
 
