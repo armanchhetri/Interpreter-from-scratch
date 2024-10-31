@@ -28,7 +28,6 @@ impl<'a> Scanner<'a> {
                 continue;
             }
             let token_type: TokenType = match c {
-                ' ' => continue,
                 '=' => {
                     if self.is_next('=') {
                         self.next();
@@ -72,6 +71,9 @@ impl<'a> Scanner<'a> {
                 '"' => self.get_string_token(),
 
                 other_char => {
+                    if other_char.is_whitespace() {
+                        continue;
+                    }
                     let mut token = TokenType::None;
                     // check if single character is part of language
                     if let Some(t) = self.get_from_factory(other_char.to_string()) {
@@ -219,6 +221,23 @@ impl<'a> SuperIterator for Scanner<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_whitespaces() {
+        let mut error_handler = ErrorHandler::new();
+        let source_code = "\
+(        
+                ) ";
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
+        let expected = vec![
+            Token::new(TokenType::LeftParen, 1),
+            Token::new(TokenType::RightParen, 2),
+            Token::new(TokenType::EOF, 2),
+        ];
+        let got = scanner.scan_source();
+        assert_eq!(expected, got);
+    }
+
     #[test]
     fn test_slash() {
         let mut error_handler = ErrorHandler::new();
