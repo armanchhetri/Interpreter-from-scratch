@@ -63,6 +63,7 @@ impl<'a> Scanner<'a> {
                 '/' => {
                     if self.is_next('/') {
                         self.read_until('\n');
+                        self.curr_line += 1;
                         continue;
                     } else {
                         TokenType::Slash
