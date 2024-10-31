@@ -31,6 +31,7 @@ impl<'a> Scanner<'a> {
                 ' ' => continue,
                 '=' => {
                     if self.is_next('=') {
+                        self.next();
                         TokenType::EqualEqual
                     } else {
                         TokenType::Equal
@@ -38,6 +39,7 @@ impl<'a> Scanner<'a> {
                 }
                 '!' => {
                     if self.is_next('=') {
+                        self.next();
                         TokenType::BangEqual
                     } else {
                         TokenType::Bang
@@ -45,6 +47,7 @@ impl<'a> Scanner<'a> {
                 }
                 '<' => {
                     if self.is_next('=') {
+                        self.next();
                         TokenType::LessEqual
                     } else {
                         TokenType::Less
@@ -52,9 +55,10 @@ impl<'a> Scanner<'a> {
                 }
                 '>' => {
                     if self.is_next('=') {
-                        TokenType::Greater
-                    } else {
+                        self.next();
                         TokenType::GreaterEqual
+                    } else {
+                        TokenType::Greater
                     }
                 }
                 '"' => self.get_string_token(),
@@ -197,6 +201,24 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_equal_equal() {
+        let mut error_handler = ErrorHandler::new();
+        let source_code = "={===}";
+        let mut scanner = Scanner::new(source_code, &mut error_handler);
+        assert_eq!(
+            vec![
+                Token::new(TokenType::Equal, 1),
+                Token::new(TokenType::LeftBrace, 1),
+                Token::new(TokenType::EqualEqual, 1),
+                Token::new(TokenType::Equal, 1),
+                Token::new(TokenType::RightBrace, 1),
+                Token::new(TokenType::EOF, 1)
+            ],
+            scanner.scan()
+        );
+    }
+
+    #[test]
     fn test_scanner_as_iterator() {
         let mut error_handler = ErrorHandler::new();
         let source_code = "code";
@@ -239,8 +261,5 @@ var y = x + 8.8;
         let mut scanner = Scanner::new(source_code, &mut error_handler);
         let tokens = scanner.scan();
         assert_eq!(tokens.len(), 13);
-        // for token in tokens {
-        //     println!("{}", token);
-        // }
     }
 }
