@@ -9,6 +9,12 @@ pub struct Number {
     value: f64,
 }
 
+impl Number {
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+}
+
 impl FromStr for Number {
     type Err = ParseFloatError;
     fn from_str(num_string: &str) -> Result<Self, Self::Err> {
@@ -38,6 +44,10 @@ impl Hash for Number {
 
 impl Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.value)
+        if self.value == self.value.trunc() {
+            write!(f, "{:.1}", self.value) // this is to pass codecrafter's test
+        } else {
+            write!(f, "{}", self.value)
+        }
     }
 }

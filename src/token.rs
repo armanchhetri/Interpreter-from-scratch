@@ -164,7 +164,7 @@ impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenType::String(value) => write!(f, "STRING \"{}\" {}", value, value),
-            TokenType::Number(num) => write!(f, "NUMBER {} {}", num, num),
+            TokenType::Number(num) => write!(f, "NUMBER {} {}", num.value(), num),
             TokenType::Identifier(ident) => write!(f, "IDENTIFIER {} null", ident),
             other_token => {
                 if let Some(token_string) = TOKENTYPE_TO_STRING.get(other_token) {
@@ -201,6 +201,14 @@ mod test {
     use super::*;
     #[test]
     fn test_display() {
+        assert_eq!(
+            String::from("NUMBER 90.33 90.33"),
+            format!("{}", TokenType::Number(Number::from_str("90.33").unwrap()))
+        );
+        assert_eq!(
+            String::from("NUMBER 90 90.0"),
+            format!("{}", TokenType::Number(Number::from_str("90").unwrap()))
+        );
         assert_eq!(
             String::from("NUMBER 90.1 90.1"),
             format!("{}", TokenType::Number(Number::from_str("90.1").unwrap()))
